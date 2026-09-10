@@ -35,23 +35,3 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install npm dependencies
-        working-directory: ethiopian-orthodox-bible
-        # --legacy-peer-deps: some React Navigation / RN peer-dependency
-        # ranges are stricter than npm's default resolver likes. This is the
-        # documented, supported escape hatch, not a hack — see docs/TROUBLESHOOTING.md.
-        run: npm install --legacy-peer-deps
-
-      - name: Build empty (schema-only) Bible database asset
-        working-directory: ethiopian-orthodox-bible
-        # No verified Bible text is bundled yet (see docs/BIBLE_DATA.md).
-        # This produces a valid bible.db with all books listed and zero
