@@ -25,7 +25,11 @@ jobs:
         # Picks up whatever single .zip file is at the repo root, regardless
         # of its name — avoids any dependency on a specific filename.
         run: |
-          ZIPFILE=$(ls *.zip | head -n1)
+          ZIPFILE=$(ls *.zip 2>/dev/null | head -n1)
+          if [ -z "$ZIPFILE" ]; then
+            echo "Error: No .zip file found in repo root"
+            exit 1
+          fi
           echo "Using zip: $ZIPFILE"
           unzip -q "$ZIPFILE"
 
@@ -51,28 +55,3 @@ jobs:
         working-directory: ethiopian-orthodox-bible
         # No verified Bible text is bundled yet (see docs/BIBLE_DATA.md).
         # This produces a valid bible.db with all books listed and zero
-        # verses, so the app boots and shows its designed Amharic
-        # empty-state screens instead of crashing on a missing asset.
-        run: |
-          mkdir -p data/raw android/app/src/main/assets
-          echo "[]" > data/raw/empty.json
-          npx ts-node --skip-project -O '{"module":"commonjs","target":"es2019","esModuleInterop":true,"resolveJsonModule":true,"skipLibCheck":true,"strict":false}' scripts/build-database/index.ts --input data/raw/empty.json --out android/app/src/main/assets/bible.db
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.10.2'
-
-      - name: Build debug APK
-        working-directory: ethiopian-orthodox-bible/android
-        # Uses the `gradle` command directly (from setup-gradle above)
-        # instead of ./gradlew, because this scaffold does not ship a
-        # pre-built gradle-wrapper.jar — see docs/TROUBLESHOOTING.md.
-        run: gradle assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: ethiopian-orthodox-bible-debug-apk
-          path: ethiopian-orthodox-bible/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
